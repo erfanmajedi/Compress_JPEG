@@ -3,6 +3,33 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.fftpack
 
+
+
+
+standard_luminance_quantization_table = np.array(
+[ 16,  11,  10,  16,  24,  40,  51,  61,
+  12,  12,  14,  19,  26,  58,  60,  55,
+  14,  13,  16,  24,  40,  57,  69,  56,
+  14,  17,  22,  29,  51,  87,  80,  62,
+  18,  22,  37,  56,  68, 109, 103,  77,
+  24,  35,  55,  64,  81, 104, 113,  92,
+  49,  64,  78,  87, 103, 121, 120, 101,
+  72,  92,  95,  98, 112, 100, 103,  99],dtype=int)
+
+standard_luminance_quantization_table = standard_luminance_quantization_table.reshape([8,8])
+
+standard_chrominance_quantization_table = np.array(
+[ 17,  18,  24,  47,  99,  99,  99,  99,
+  18,  21,  26,  66,  99,  99,  99,  99,
+  24,  26,  56,  99,  99,  99,  99,  99,
+  47,  66,  99,  99,  99,  99,  99,  99,
+  99,  99,  99,  99,  99,  99,  99,  99,
+  99,  99,  99,  99,  99,  99,  99,  99,
+  99,  99,  99,  99,  99,  99,  99,  99,
+  99,  99,  99,  99,  99,  99,  99,  99],dtype=int)
+
+standard_chrominance_quantization_table = standard_chrominance_quantization_table.reshape([8,8])
+
 # here we convert RGB to YCbCr
 def rgb2ycbcr(image, color_pix):
     lst = []
@@ -37,25 +64,33 @@ def subsampling(image) :
 def blocking(image) : 
     width = image.width
     height = image.height
+    
     image.save("image_after_subsampling.jpg")
     for i in range(0, width, 8) :
         for j in range(0, height, 8) : 
             block = [[0] * 8] * 8
-            for b_x in range(i, i + 8) : 
-                for b_y in range(j, j + 8) : 
-                    if (b_x >= width) or (b_y >= height) : 
+            for block_x_axis in range(i, i + 8) : 
+                for block_y_axis in range(j, j + 8) : 
+                    if (block_x_axis >= width) or (block_y_axis >= height) : 
                         data = (0, 0, 0)
                     else : 
-                        data = image.getpixel((b_x, b_y))
-                    block[b_x - i][b_y - j] = data
-            print(two_dimentional_DCT(block))
+                        data = image.getpixel((block_x_axis, block_y_axis))
+                    block[block_x_axis - i][block_y_axis - j] = data
+                # print(quantized_matrix(two_dimentional_DCT(block)))
                 # print(i, j)
-                # for item in arr : 
-                #     print(item)
+                # for item in block : 
+                    # print(item)
+                    
 
 def two_dimentional_DCT(block) : 
-    return scipy.fftpack.dct( scipy.fftpack.dct(block, axis = 0, norm = 'ortho'), axis = 1, norm = 'ortho')
-    
+    return scipy.fftpack.dct(scipy.fftpack.dct(block, axis = 0, norm = 'ortho'), axis = 1, norm = 'ortho')
+
+
+def quantized_matrix(blocks) : 
+    new_blocks = blocks[0:8, 0:8, -1]
+    # return((new_blocks/standard_luminance_quantization_table).round().astype(np.uint32))
+    return((new_blocks/standard_chrominance_quantization_table).round().astype(np.uint32))
+
 img = Image.open('photo1.png')
 rgb_image = img.convert('RGB')
 rgb_image.save("photo.jpg")
