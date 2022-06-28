@@ -92,11 +92,14 @@ def two_dimentional_DCT(block) :
 def quantized_matrix(dct_matrix, img) :
     img_wid = img.width
     img_hei = img.height
-    ycbcr = []
+    new_block = [[0] * img_hei] * img_wid 
+    
     for x in range(0, img_wid, 8) :
         for y in range(0, img_hei, 8) :
-            
+            # if x == 0 and y == 424 :
+                ycbcr = []
                 for z in range(8) :
+                    new_ycbcr = []
                     for k in range(8) : 
                         Y = dct_matrix[x][y][z][k][0]
                         Cb = dct_matrix[x][y][z][k][1]
@@ -105,18 +108,12 @@ def quantized_matrix(dct_matrix, img) :
                         cb_bar = round(Cb / standard_chrominance_quantization_table[z][k])
                         cr_bar = round(Cr / standard_chrominance_quantization_table[z][k])
                         ycbcr.append((y_bar, cb_bar, cr_bar))
-    # print(ycbcr)
+                    new_ycbcr.append(ycbcr)
+                new_block[x][y] = new_ycbcr
+                # print(new_ycbcr)
 
-    
-    # Y_matrix = np.array(Y)
-    # print(Y_matrix)
-    # for i in range(8) :
-    #     for j in range(8) :
-    #         Y_matrix[i][j] = 
-    #         print(Y_matrix)
-    # print(dct_coeff)
-    # return((new_blocks/standard_luminance_quantization_table).round().astype(np.uint32))
-    # print((new_blocks/standard_chrominance_quantization_table).round().astype(np.uint32))
+
+
 
 img = Image.open('photo1.png')
 rgb_image = img.convert('RGB')
