@@ -1,7 +1,3 @@
-import encodings
-from lib2to3.pygram import Symbols
-
-
 class Node : 
     def __init__(self, prob, symbol, left = None, right = None) :
         # probability
@@ -85,7 +81,7 @@ def huffman(data) :
     print(huffman)
     total_gain(data, huffman)
     encoded_output = Out_Encode(data, huffman)
-    print("Encoded Output:", encoded_output)
+    print("\tEncoded Output:", encoded_output)
     return encoded_output, nodes[0]
 
 inputData = input().split()
