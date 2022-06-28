@@ -1,3 +1,4 @@
+from pickletools import uint8
 from PIL import Image
 import numpy as np 
 import matplotlib.pyplot as plt
@@ -64,8 +65,8 @@ def subsampling(image) :
 def blocking(image) : 
     width = image.width
     height = image.height
-    
     image.save("image_after_subsampling.jpg")
+    dct_coefficients = [[0] * height] * width
     for i in range(0, width, 8) :
         for j in range(0, height, 8) : 
             block = [[0] * 8] * 8
@@ -76,8 +77,10 @@ def blocking(image) :
                     else : 
                         data = image.getpixel((block_x_axis, block_y_axis))
                     block[block_x_axis - i][block_y_axis - j] = data
-                # print(quantized_matrix(two_dimentional_DCT(block)))
-                # print(i, j)
+            dct_coefficients[i][j] = two_dimentional_DCT(block)
+    quantized_matrix(dct_coefficients , image) 
+            # quantized_matrix(dct_coefficients[i][j], width, height)
+            # print(i, j)
                 # for item in block : 
                     # print(item)
                     
@@ -86,10 +89,34 @@ def two_dimentional_DCT(block) :
     return scipy.fftpack.dct(scipy.fftpack.dct(block, axis = 0, norm = 'ortho'), axis = 1, norm = 'ortho')
 
 
-def quantized_matrix(blocks) : 
-    new_blocks = blocks[0:8, 0:8, -1]
+def quantized_matrix(dct_matrix, img) :
+    img_wid = img.width
+    img_hei = img.height
+    ycbcr = []
+    for x in range(0, img_wid, 8) :
+        for y in range(0, img_hei, 8) :
+            
+                for z in range(8) :
+                    for k in range(8) : 
+                        Y = dct_matrix[x][y][z][k][0]
+                        Cb = dct_matrix[x][y][z][k][1]
+                        Cr = dct_matrix[x][y][z][k][2]
+                        y_bar = round(Y / standard_luminance_quantization_table[z][k])
+                        cb_bar = round(Cb / standard_chrominance_quantization_table[z][k])
+                        cr_bar = round(Cr / standard_chrominance_quantization_table[z][k])
+                        ycbcr.append((y_bar, cb_bar, cr_bar))
+    # print(ycbcr)
+
+    
+    # Y_matrix = np.array(Y)
+    # print(Y_matrix)
+    # for i in range(8) :
+    #     for j in range(8) :
+    #         Y_matrix[i][j] = 
+    #         print(Y_matrix)
+    # print(dct_coeff)
     # return((new_blocks/standard_luminance_quantization_table).round().astype(np.uint32))
-    return((new_blocks/standard_chrominance_quantization_table).round().astype(np.uint32))
+    # print((new_blocks/standard_chrominance_quantization_table).round().astype(np.uint32))
 
 img = Image.open('photo1.png')
 rgb_image = img.convert('RGB')
